@@ -1,5 +1,6 @@
 import express from 'express'
-import itemRoutes from './routes/gameRoutes'
+import gameRoutes from './routes/gameRoutes'
+import questionsRoutes from './routes/questionRoutes'
 import { errorHandler } from './middlewares/errorHandler'
 
 const app = express()
@@ -7,7 +8,8 @@ const app = express()
 app.use(express.json())
 
 // Routes
-app.use('/api/games', itemRoutes)
+app.use('/api/games', gameRoutes)
+app.use('/api/questions', questionsRoutes)
 
 // Global error handler (should be after routes)
 app.use(errorHandler)

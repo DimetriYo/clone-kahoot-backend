@@ -4,8 +4,7 @@ import { type Game, games } from '../db/games'
 // Create an item
 export const createGame = (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { questionIds } = req.body
-    const newGame: Game = { id: crypto.randomUUID(), questionIds }
+    const newGame: Game = { id: crypto.randomUUID() }
     games.push(newGame)
     res.status(201).json(newGame)
   } catch (error) {
@@ -17,7 +16,7 @@ export const createGame = (req: Request, res: Response, next: NextFunction) => {
 export const getAllGames = (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     res.json(games)
@@ -30,7 +29,7 @@ export const getAllGames = (
 export const getSingleGameById = (
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   try {
     const game = games.find((game) => game.id === req.params.id)
@@ -44,21 +43,21 @@ export const getSingleGameById = (
   }
 }
 
-// Update an item
-export const updateGame = (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const { questionIds } = req.body
-    const gameIndex = games.findIndex((i) => i.id === req.params.id)
-    if (gameIndex === -1) {
-      res.status(404).json({ message: 'Item not found' })
-      return
-    }
-    games[gameIndex].questionIds = questionIds
-    res.json(games[gameIndex])
-  } catch (error) {
-    next(error)
-  }
-}
+// // Update an item
+// export const updateGame = (req: Request, res: Response, next: NextFunction) => {
+//   try {
+//     const { questionIds } = req.body
+//     const gameIndex = games.findIndex((i) => i.id === req.params.id)
+//     if (gameIndex === -1) {
+//       res.status(404).json({ message: 'Item not found' })
+//       return
+//     }
+//     games[gameIndex].questionIds = questionIds
+//     res.json(games[gameIndex])
+//   } catch (error) {
+//     next(error)
+//   }
+// }
 
 // Delete an item
 export const deleteGame = (req: Request, res: Response, next: NextFunction) => {
