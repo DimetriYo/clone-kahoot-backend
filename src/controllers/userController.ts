@@ -43,6 +43,49 @@ export const getSingleUserById = (
   }
 }
 
+export const isAdminUser = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const isExistUser = users.some((user) => user.id === req.params.id)
+
+    if (!isExistUser) {
+      res.status(404).json({ message: ' not found' })
+      return
+    }
+
+    const isAdminUser = req.params.id === process.env.ADMIN_ID
+
+    res.json(isAdminUser)
+  } catch (error) {
+    next(error)
+  }
+}
+
+export const authenticateUser = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const { name, password } = req.body
+
+  try {
+    const user = users.find(
+      (user) => user.name === name && user.password === password,
+    )
+
+    if (!user) {
+      res.status(404).json({ message: 'Question not found' })
+      return
+    }
+    res.json(user)
+  } catch (error) {
+    next(error)
+  }
+}
+
 // // Update an item
 export const updateUser = (req: Request, res: Response, next: NextFunction) => {
   req.body
