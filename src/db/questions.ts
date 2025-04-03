@@ -1,10 +1,11 @@
-export type Question = {
+export type RawQuestion = {
   gameId: string
-  id: string
-  img: string
+  img?: string
   text: string
   acceptedAnswers: string[]
 }
+
+export type Question = RawQuestion & { id: string }
 
 export const questions: Question[] = [
   {

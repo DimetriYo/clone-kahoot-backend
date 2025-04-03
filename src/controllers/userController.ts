@@ -1,0 +1,77 @@
+import { Request, Response, NextFunction } from 'express'
+import { type User, users } from '../db/users'
+
+// Create an item
+export const createUser = (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const newUser: User = { id: crypto.randomUUID(), ...req.body }
+    users.push(newUser)
+    res.status(201).json(newUser)
+  } catch (error) {
+    next(error)
+  }
+}
+
+// // Read all items
+export const getAllUsers = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    res.json(users)
+  } catch (error) {
+    next(error)
+  }
+}
+
+// Read single item
+export const getSingleUserById = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  try {
+    const user = users.find((user) => user.id === req.params.id)
+    if (!user) {
+      res.status(404).json({ message: 'Question not found' })
+      return
+    }
+    res.json(user)
+  } catch (error) {
+    next(error)
+  }
+}
+
+// // Update an item
+export const updateUser = (req: Request, res: Response, next: NextFunction) => {
+  req.body
+  try {
+    const userIndex = users.findIndex(
+      (question) => question.id === req.params.id,
+    )
+    if (userIndex === -1) {
+      res.status(404).json({ message: 'User not found' })
+      return
+    }
+    users[userIndex] = { ...req.body, id: req.params.id }
+    res.json(users[userIndex])
+  } catch (error) {
+    next(error)
+  }
+}
+
+// Delete an item
+export const deleteUser = (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userIndex = users.findIndex((i) => i.id === req.params.id)
+    if (userIndex === -1) {
+      res.status(404).json({ message: 'Question not found' })
+      return
+    }
+    const deletedQuestion = users.splice(userIndex, 1)[0]
+    res.json(deletedQuestion)
+  } catch (error) {
+    next(error)
+  }
+}
