@@ -7,12 +7,19 @@ import { getRandomColor } from '../utils'
 
 let gameInstance: AcitveGame | null = null
 
+type QuestionAnswer = {
+  questionId: string
+  answer: string
+  playerId: string
+}
+
 type AcitveGame = {
   id: string
   players: {
     id: string
     name: string
     bgColor: string
+    answers: { questionId: string; text: string }[]
   }[]
   allQuestions: {
     id: string
@@ -24,7 +31,11 @@ type AcitveGame = {
 
 const getActiveGame = (activeGameId: string): AcitveGame => {
   const game = games.find(({ id }) => id === activeGameId)!
-  const allQuestions = questions.filter(({ gameId }) => gameId === activeGameId)
+  const allQuestions = questions
+    .filter(({ gameId }) => gameId === activeGameId)
+    .map(({ acceptedAnswers, gameId, ...question }) => ({
+      ...question,
+    }))
   const activeQuestionId = allQuestions[0].id
 
   return { ...game, players: [], allQuestions, activeQuestionId }
@@ -39,6 +50,21 @@ const broadcastGameData = (
   )
 }
 
+const handleAnswerQuestion = (
+  wss: ws.Server<typeof WebSocket, typeof IncomingMessage>,
+  payload: QuestionAnswer,
+) => {
+  const player = gameInstance?.players.find(({ id }) => payload.playerId === id)
+
+  if (!gameInstance || !player) {
+    return
+  }
+
+  player.answers.push({ questionId: payload.questionId, text: payload.answer })
+
+  broadcastGameData(wss, gameInstance)
+}
+
 const handleNewPlayerConnected = (
   wss: ws.Server<typeof WebSocket, typeof IncomingMessage>,
   payload: { userId: string },
@@ -49,10 +75,11 @@ const handleNewPlayerConnected = (
 
   const playerData = users.find(({ id }) => id === payload.userId)!
 
-  const player = {
+  const player: (typeof gameInstance.players)[number] = {
     id: playerData.id,
     name: playerData.name,
     bgColor: getRandomColor(),
+    answers: [],
   }
 
   if (!gameInstance.players.some(({ id }) => id === payload.userId)) {
@@ -107,6 +134,13 @@ export const activeGameController = (
       case 'CHANGE_QUESTION':
         if (gameInstance) {
           handleChangeQuestion(wss, parsedMeesage.payload)
+        }
+
+        break
+
+      case 'ANSWER_QUESTION':
+        if (gameInstance) {
+          handleAnswerQuestion(wss, parsedMeesage.payload)
         }
 
         break
