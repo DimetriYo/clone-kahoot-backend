@@ -12,7 +12,11 @@ const app = express()
 const server = createServer(app)
 const wss = new ws.Server({ server })
 
-wss.on('connection', (ws) => activeGameController(ws, wss))
+wss.on('connection', (ws) => {
+  const clients = new Map()
+  const clientId = crypto.randomUUID()
+  activeGameController(ws, wss, clientId)
+})
 
 app.use(cors())
 

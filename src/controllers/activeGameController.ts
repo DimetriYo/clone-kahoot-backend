@@ -20,6 +20,7 @@ type AcitveGame = {
     name: string
     bgColor: string
     answers: { questionId: string; text: string }[]
+    clientId: string
   }[]
   allQuestions: {
     id: string
@@ -68,6 +69,7 @@ const handleAnswerQuestion = (
 const handleNewPlayerConnected = (
   wss: ws.Server<typeof WebSocket, typeof IncomingMessage>,
   payload: { userId: string },
+  clientId: string,
 ) => {
   if (!gameInstance) {
     return
@@ -80,6 +82,7 @@ const handleNewPlayerConnected = (
     name: playerData.name,
     bgColor: getRandomColor(),
     answers: [],
+    clientId,
   }
 
   if (!gameInstance.players.some(({ id }) => id === payload.userId)) {
@@ -103,6 +106,7 @@ const handleChangeQuestion = (
 export const activeGameController = (
   ws: ws,
   wss: ws.Server<typeof WebSocket, typeof IncomingMessage>,
+  clientId: string,
 ) => {
   ws.on('message', (message: string) => {
     const parsedMeesage: { type: string; payload: any } = JSON.parse(message)
@@ -127,7 +131,7 @@ export const activeGameController = (
           break
         }
 
-        handleNewPlayerConnected(wss, parsedMeesage.payload)
+        handleNewPlayerConnected(wss, parsedMeesage.payload, clientId)
 
         break
 
@@ -147,7 +151,17 @@ export const activeGameController = (
     }
   })
 
-  ws.on('close', () => {
+  ws.on('close', (e) => {
     console.log('Клиент отключился')
+
+    if (!gameInstance) {
+      return
+    }
+
+    gameInstance.players = gameInstance?.players.filter(
+      ({ clientId: disconnectedClient }) => disconnectedClient !== clientId,
+    )
+
+    broadcastGameData(wss, gameInstance)
   })
 }
