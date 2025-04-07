@@ -6,7 +6,8 @@ export const createUser = (req: Request, res: Response, next: NextFunction) => {
   try {
     const newUser: User = { id: crypto.randomUUID(), ...req.body }
     users.push(newUser)
-    res.status(201).json(newUser)
+    const userData = { id: newUser.id, name: newUser.name }
+    res.status(201).json(userData)
   } catch (error) {
     next(error)
   }
