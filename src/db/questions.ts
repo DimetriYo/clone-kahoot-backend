@@ -16,6 +16,7 @@ export const questions: Question[] = [
     acceptedAnswers: [
       'correct answer game 1, question 1',
       'another correct answer game 1, question 1',
+      'yes',
     ],
   },
   {
@@ -26,6 +27,7 @@ export const questions: Question[] = [
     acceptedAnswers: [
       'correct answer game 1, question 2',
       'another correct answer game 1, question 2',
+      'no',
     ],
   },
   {
@@ -36,6 +38,7 @@ export const questions: Question[] = [
     acceptedAnswers: [
       'correct answer game 2, question 1',
       'another correct answer game 2, question 1',
+      'true',
     ],
   },
   {
@@ -46,6 +49,7 @@ export const questions: Question[] = [
     acceptedAnswers: [
       'correct answer game 2, question 2',
       'another correct answer game 2, question 2',
+      'false',
     ],
   },
 ]

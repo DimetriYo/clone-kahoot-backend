@@ -3,15 +3,10 @@ import ws, { WebSocket } from 'ws'
 import { games } from '../db/games'
 import { questions } from '../db/questions'
 import { users } from '../db/users'
-import { getRandomColor } from '../utils'
+import { getRandomColor, isCorrectAnswer } from '../utils'
+import { QuestionAnswer } from '../types'
 
 let gameInstance: AcitveGame | null = null
-
-type QuestionAnswer = {
-  questionId: string
-  answer: string
-  playerId: string
-}
 
 type AcitveGame = {
   id: string
@@ -19,7 +14,7 @@ type AcitveGame = {
     id: string
     name: string
     bgColor: string
-    answers: { questionId: string; text: string }[]
+    answers: { questionId: string; text: string; isCorrect: boolean }[]
     clientId: string
   }[]
   allQuestions: {
@@ -42,13 +37,11 @@ const getActiveGame = (activeGameId: string): AcitveGame => {
   return { ...game, players: [], allQuestions, activeQuestionId }
 }
 
-const broadcastGameData = (
+const broadcastMessage = (
   wss: ws.Server<typeof WebSocket, typeof IncomingMessage>,
-  game: AcitveGame,
+  message: { type: string; payload: any },
 ) => {
-  wss.clients.forEach((client) =>
-    client.send(JSON.stringify({ type: 'GAME_DATA', payload: game })),
-  )
+  wss.clients.forEach((client) => client.send(JSON.stringify(message)))
 }
 
 const handleAnswerQuestion = (
@@ -61,9 +54,13 @@ const handleAnswerQuestion = (
     return
   }
 
-  player.answers.push({ questionId: payload.questionId, text: payload.answer })
+  player.answers.push({
+    questionId: payload.questionId,
+    text: payload.answer,
+    isCorrect: isCorrectAnswer(payload),
+  })
 
-  broadcastGameData(wss, gameInstance)
+  broadcastMessage(wss, { type: 'GAME_DATA', payload: gameInstance })
 }
 
 const handleNewPlayerConnected = (
@@ -89,7 +86,7 @@ const handleNewPlayerConnected = (
     gameInstance.players.push(player)
   }
 
-  broadcastGameData(wss, gameInstance)
+  broadcastMessage(wss, { type: 'GAME_DATA', payload: gameInstance })
 }
 
 const handleChangeQuestion = (
@@ -99,8 +96,15 @@ const handleChangeQuestion = (
   if (gameInstance) {
     gameInstance.activeQuestionId = payload.qusetionId
 
-    broadcastGameData(wss, gameInstance)
+    broadcastMessage(wss, { type: 'GAME_DATA', payload: gameInstance })
   }
+}
+
+const handleShowAnswers = (
+  wss: ws.Server<typeof WebSocket, typeof IncomingMessage>,
+  message: { type: string; payload: { questionId: string } },
+) => {
+  broadcastMessage(wss, message)
 }
 
 export const activeGameController = (
@@ -148,6 +152,13 @@ export const activeGameController = (
         }
 
         break
+
+      case 'SHOW_ANSWERS':
+        if (gameInstance) {
+          handleShowAnswers(wss, parsedMeesage)
+        }
+
+        break
     }
   })
 
@@ -162,6 +173,6 @@ export const activeGameController = (
       ({ clientId: disconnectedClient }) => disconnectedClient !== clientId,
     )
 
-    broadcastGameData(wss, gameInstance)
+    broadcastMessage(wss, { type: 'GAME_DATA', payload: gameInstance })
   })
 }
