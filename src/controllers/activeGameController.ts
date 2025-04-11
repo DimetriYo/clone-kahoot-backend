@@ -107,6 +107,13 @@ const handleShowAnswers = (
   broadcastMessage(wss, message)
 }
 
+const handleShowWinners = (
+  wss: ws.Server<typeof WebSocket, typeof IncomingMessage>,
+  message: { type: string; payload: null },
+) => {
+  broadcastMessage(wss, message)
+}
+
 export const activeGameController = (
   ws: ws,
   wss: ws.Server<typeof WebSocket, typeof IncomingMessage>,
@@ -156,6 +163,20 @@ export const activeGameController = (
       case 'SHOW_ANSWERS':
         if (gameInstance) {
           handleShowAnswers(wss, parsedMeesage)
+        }
+
+        break
+
+      case 'SHOW_WINNERS':
+        if (gameInstance) {
+          handleShowWinners(wss, parsedMeesage)
+        }
+
+        break
+
+      case 'END_GAME':
+        if (gameInstance) {
+          gameInstance = null
         }
 
         break
