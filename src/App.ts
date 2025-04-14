@@ -4,21 +4,22 @@ import questionRoutes from './routes/questionRoutes'
 import userRoutes from './routes/userRoutes'
 import cors from 'cors'
 import { errorHandler } from './middlewares/errorHandler'
-import ws, { WebSocket } from 'ws'
-import { createServer, IncomingMessage } from 'http'
+import ws from 'ws'
+import { createServer } from 'http'
 import { activeGameController } from './controllers/activeGameController'
+import cookieParser from 'cookie-parser'
 
 const app = express()
 const server = createServer(app)
 const wss = new ws.Server({ server })
 
 wss.on('connection', (ws) => {
-  const clients = new Map()
   const clientId = crypto.randomUUID()
   activeGameController(ws, wss, clientId)
 })
 
-app.use(cors())
+app.use(cors({ origin: 'http://localhost:5173', credentials: true }))
+app.use(cookieParser('random-key'))
 
 app.use(express.json())
 

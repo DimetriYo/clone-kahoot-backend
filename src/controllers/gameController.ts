@@ -1,10 +1,21 @@
 import { Request, Response, NextFunction } from 'express'
 import { type Game, games } from '../db/games'
+import { AUTHORIZATION_COOKIE_KEY } from '../constants'
 
 // Create an item
 export const createGame = (req: Request, res: Response, next: NextFunction) => {
   try {
-    const newGame: Game = { id: crypto.randomUUID() }
+    const adminId = req.cookies[AUTHORIZATION_COOKIE_KEY]
+
+    if (!adminId) {
+      throw new Error("Couldn't authenticate user.")
+    }
+
+    const newGame: Game = {
+      id: crypto.randomUUID(),
+      adminId,
+    }
+
     games.push(newGame)
     res.status(201).json(newGame)
   } catch (error) {
@@ -12,14 +23,22 @@ export const createGame = (req: Request, res: Response, next: NextFunction) => {
   }
 }
 
-// Read all items
+// Read all game created by user
 export const getAllGames = (
   req: Request,
   res: Response,
   next: NextFunction,
 ) => {
+  const adminId = req.cookies[AUTHORIZATION_COOKIE_KEY]
+
+  if (!adminId) {
+    throw new Error("Couldn't authenticate user.")
+  }
+
   try {
-    res.json(games)
+    res.json(
+      games.filter(({ adminId: gameAdminId }) => gameAdminId === adminId),
+    )
   } catch (error) {
     next(error)
   }
@@ -33,10 +52,12 @@ export const getSingleGameById = (
 ) => {
   try {
     const game = games.find((game) => game.id === req.params.id)
+
     if (!game) {
       res.status(404).json({ message: 'Game not found' })
       return
     }
+
     res.json(game)
   } catch (error) {
     next(error)

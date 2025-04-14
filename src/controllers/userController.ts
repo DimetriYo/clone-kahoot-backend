@@ -1,13 +1,23 @@
 import { Request, Response, NextFunction } from 'express'
 import { type User, users } from '../db/users'
+import { AUTHORIZATION_COOKIE_KEY } from '../constants'
 
 // Create an item
 export const createUser = (req: Request, res: Response, next: NextFunction) => {
   try {
     const newUser: User = { id: crypto.randomUUID(), ...req.body }
+
     users.push(newUser)
+
     const userData = { id: newUser.id, name: newUser.name }
-    res.status(201).json(userData)
+
+    res
+      .cookie(
+        encodeURIComponent(AUTHORIZATION_COOKIE_KEY),
+        encodeURIComponent(newUser.id),
+      )
+      .status(201)
+      .json(userData)
   } catch (error) {
     next(error)
   }
@@ -34,10 +44,12 @@ export const getSingleUserById = (
 ) => {
   try {
     const user = users.find((user) => user.id === req.params.id)
+
     if (!user) {
       res.status(404).json({ message: 'Question not found' })
       return
     }
+
     res.json(user)
   } catch (error) {
     next(error)
@@ -81,7 +93,13 @@ export const authenticateUser = (
       res.status(404).json({ message: 'Question not found' })
       return
     }
-    res.json(user)
+
+    res
+      .cookie(
+        encodeURIComponent(AUTHORIZATION_COOKIE_KEY),
+        encodeURIComponent(user.id),
+      )
+      .json(user)
   } catch (error) {
     next(error)
   }
