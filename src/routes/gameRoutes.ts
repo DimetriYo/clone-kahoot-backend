@@ -1,14 +1,14 @@
 import { Router } from 'express'
 import {
   createGame,
-  getAllGames,
+  getAllUserGames,
   getSingleGameById,
   deleteGame,
 } from '../controllers/gameController'
 
 const router = Router()
 
-router.get('/', getAllGames)
+router.get('/', getAllUserGames)
 router.get('/:id', getSingleGameById)
 router.post('/', createGame)
 router.delete('/:id', deleteGame)

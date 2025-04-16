@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto'
 import { Request, Response, NextFunction } from 'express'
 import { type User, users } from '../db/users'
 import { AUTHORIZATION_COOKIE_KEY } from '../constants'
@@ -5,7 +6,7 @@ import { AUTHORIZATION_COOKIE_KEY } from '../constants'
 // Create an item
 export const createUser = (req: Request, res: Response, next: NextFunction) => {
   try {
-    const newUser: User = { id: crypto.randomUUID(), ...req.body }
+    const newUser: User = { id: randomUUID(), ...req.body }
 
     users.push(newUser)
 

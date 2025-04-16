@@ -24,21 +24,19 @@ export const createGame = (req: Request, res: Response, next: NextFunction) => {
 }
 
 // Read all game created by user
-export const getAllGames = (
+export const getAllUserGames = (
   req: Request,
   res: Response,
   next: NextFunction,
 ) => {
-  const adminId = req.cookies[AUTHORIZATION_COOKIE_KEY]
+  const userId = req.query.userId
 
-  if (!adminId) {
+  if (!userId) {
     throw new Error("Couldn't authenticate user.")
   }
 
   try {
-    res.json(
-      games.filter(({ adminId: gameAdminId }) => gameAdminId === adminId),
-    )
+    res.json(games.filter(({ adminId: gameAdminId }) => gameAdminId === userId))
   } catch (error) {
     next(error)
   }
