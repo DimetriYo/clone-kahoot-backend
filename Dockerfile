@@ -35,4 +35,4 @@ COPY --from=build /app/dist ./dist
 EXPOSE 3000
 
 # Запускаем приложение
-CMD ["node", "dist/server.js"]
+CMD ["yarn", "start"]
