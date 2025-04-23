@@ -12,6 +12,8 @@ RUN yarn install --frozen-lockfile
 # Копируем исходники
 COPY . .
 
+ENV NODE_ENV=production
+
 # Собираем TypeScript код
 RUN yarn build
 
