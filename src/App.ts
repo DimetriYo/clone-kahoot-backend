@@ -22,7 +22,7 @@ wss.on('connection', (ws) => {
 const allowedOrigins =
   config.nodeEnv === 'development'
     ? 'http://localhost:5173'
-    : 'https://dimetriyo.github.io/clone-kahoot'
+    : ['http://localhost:4173', 'https://dimetriyo.github.io']
 
 app.use(cors({ origin: allowedOrigins, credentials: true }))
 app.use(cookieParser('random-key'))
