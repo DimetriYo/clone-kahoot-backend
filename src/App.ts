@@ -8,6 +8,7 @@ import ws from 'ws'
 import { createServer } from 'http'
 import { activeGameController } from './controllers/activeGameController'
 import cookieParser from 'cookie-parser'
+import config from './config/config'
 
 const app = express()
 const server = createServer(app)
@@ -18,7 +19,12 @@ wss.on('connection', (ws) => {
   activeGameController(ws, wss, clientId)
 })
 
-app.use(cors({ origin: 'http://localhost:5173', credentials: true }))
+const allowedOrigins =
+  config.nodeEnv === 'development'
+    ? 'http://localhost:5173'
+    : 'https://dimetriyo.github.io/clone-kahoot'
+
+app.use(cors({ origin: allowedOrigins, credentials: true }))
 app.use(cookieParser('random-key'))
 
 app.use(express.json())
