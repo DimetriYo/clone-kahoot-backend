@@ -5,7 +5,6 @@ import { questions } from '../db/questions'
 import { users } from '../db/users'
 import { getRandomColor, isCorrectAnswer } from '../utils'
 import { QuestionAnswer } from '../types'
-import { prisma } from '../prisma'
 
 let gameInstance: AcitveGame | null = null
 
@@ -64,7 +63,7 @@ const handleAnswerQuestion = (
   broadcastMessage(wss, { type: 'GAME_DATA', payload: gameInstance })
 }
 
-const handleNewPlayerConnected = (
+const handleNewPlayerConnected = async (
   wss: ws.Server<typeof WebSocket, typeof IncomingMessage>,
   payload: { userId: string },
   clientId: string,
@@ -72,8 +71,6 @@ const handleNewPlayerConnected = (
   if (!gameInstance) {
     return
   }
-
-  const asdf = prisma
 
   const playerData = users.find(({ id }) => id === payload.userId)!
 

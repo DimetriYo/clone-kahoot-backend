@@ -2,6 +2,7 @@ import { randomUUID } from 'crypto'
 import { Request, Response, NextFunction } from 'express'
 import { type User, users } from '../db/users'
 import { AUTHORIZATION_COOKIE_KEY } from '../constants'
+import { prisma } from '../prisma'
 
 // Create an item
 export const createUser = (req: Request, res: Response, next: NextFunction) => {
@@ -25,12 +26,14 @@ export const createUser = (req: Request, res: Response, next: NextFunction) => {
 }
 
 // // Read all items
-export const getAllUsers = (
+export const getAllUsers = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ) => {
   try {
+    const users = await prisma.user.findMany()
+
     res.json(users)
   } catch (error) {
     next(error)

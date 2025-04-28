@@ -6,7 +6,6 @@
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
 }
 
 datasource db {
@@ -22,13 +21,14 @@ model Game {
 model Question {
   id    String     @id @default(cuid())
   gameId  String
-  img  String
+  img  String?
   text  String
 }
 
 model AcceptedAnswer {
   id String @id @default(cuid())
   questionId String
+  text String
 }
 
 model User {
