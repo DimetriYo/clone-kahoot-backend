@@ -5,6 +5,7 @@ import { questions } from '../db/questions'
 import { users } from '../db/users'
 import { getRandomColor, isCorrectAnswer } from '../utils'
 import { QuestionAnswer } from '../types'
+import { prisma } from '../prisma'
 
 let gameInstance: AcitveGame | null = null
 
@@ -71,6 +72,8 @@ const handleNewPlayerConnected = (
   if (!gameInstance) {
     return
   }
+
+  const asdf = prisma
 
   const playerData = users.find(({ id }) => id === payload.userId)!
 
