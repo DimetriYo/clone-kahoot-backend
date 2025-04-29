@@ -8,14 +8,15 @@ CREATE TABLE "Game" (
 CREATE TABLE "Question" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "gameId" TEXT NOT NULL,
-    "img" TEXT NOT NULL,
+    "img" TEXT,
     "text" TEXT NOT NULL
 );
 
 -- CreateTable
 CREATE TABLE "AcceptedAnswer" (
     "id" TEXT NOT NULL PRIMARY KEY,
-    "questionId" TEXT NOT NULL
+    "questionId" TEXT NOT NULL,
+    "text" TEXT NOT NULL
 );
 
 -- CreateTable
