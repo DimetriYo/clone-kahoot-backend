@@ -1,25 +1,23 @@
 import { Request, Response, NextFunction } from 'express'
-import { type Game, games } from '../db/games'
+import { games } from '../db/games'
 import { AUTHORIZATION_COOKIE_KEY } from '../constants'
+import { prisma } from '../prisma'
 
 // Create an item
-export const createGame = (req: Request, res: Response, next: NextFunction) => {
+export const createGame = async (req: Request, res: Response) => {
   try {
     const adminId = req.cookies[AUTHORIZATION_COOKIE_KEY]
+    console.log(adminId)
 
     if (!adminId) {
-      throw new Error("Couldn't authenticate user.")
+      throw new Error(`There is no user with ID: ${adminId}`)
     }
 
-    const newGame: Game = {
-      id: crypto.randomUUID(),
-      adminId,
-    }
+    const newGame = await prisma.game.create({ data: { adminId } })
 
-    games.push(newGame)
     res.status(201).json(newGame)
   } catch (error) {
-    next(error)
+    res.status(404).send(String(error))
   }
 }
 
