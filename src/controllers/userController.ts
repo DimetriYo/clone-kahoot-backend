@@ -4,28 +4,43 @@ import { type User, users } from '../db/users'
 import { AUTHORIZATION_COOKIE_KEY } from '../constants'
 import { prisma } from '../prisma'
 
+type RawUser = { name: string; password: string }
+
+const isRawUser = (rawUser: RawUser | any): rawUser is RawUser =>
+  'name' in rawUser && 'password' in rawUser
+
 // Create an item
-export const createUser = (req: Request, res: Response, next: NextFunction) => {
+export const createUser = async (req: Request, res: Response) => {
   try {
-    const newUser: User = { id: randomUUID(), ...req.body }
+    const rawUser = req.body
 
-    users.push(newUser)
+    if (!isRawUser(rawUser)) {
+      throw Error('User name or user password has not been set')
+    }
 
-    const userData = { id: newUser.id, name: newUser.name }
+    const user = await prisma.user.findFirst({ where: { name: rawUser.name } })
+
+    if (Boolean(user)) {
+      throw new Error(
+        'There is a user with such a name. Please make a unique name',
+      )
+    }
+
+    const { id, name } = await prisma.user.create({ data: rawUser })
 
     res
       .cookie(
         encodeURIComponent(AUTHORIZATION_COOKIE_KEY),
-        encodeURIComponent(newUser.id),
+        encodeURIComponent(id),
       )
       .status(201)
-      .json(userData)
+      .json({ id, name })
   } catch (error) {
-    next(error)
+    res.send(String(error))
   }
 }
 
-// // Read all items
+// Read all items
 export const getAllUsers = async (
   req: Request,
   res: Response,
@@ -61,55 +76,38 @@ export const getSingleUserById = (
 }
 
 export const isAdminUser = (
+  // TODO: check if is used and delete if not
   req: Request,
   res: Response,
-  next: NextFunction,
 ) => {
   try {
-    const isExistUser = users.some((user) => user.id === req.params.id)
-
-    if (!isExistUser) {
-      res.status(404).json({ message: ' not found' })
-      return
-    }
-
     const isAdminUser = req.params.id === process.env.ADMIN_ID
-
-    res.json(isAdminUser)
-  } catch (error) {
-    next(error)
+    res.json({ isAdminUser })
+  } catch (e) {
+    res.status(404).json({ isAdminUser: false })
   }
 }
 
-export const authenticateUser = (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
+export const authenticateUser = async (req: Request, res: Response) => {
   const { name, password } = req.body
 
   try {
-    const user = users.find(
-      (user) => user.name === name && user.password === password,
-    )
-
-    if (!user) {
-      res.status(404).json({ message: 'Question not found' })
-      return
-    }
+    const { id, name: foundName } = await prisma.user.findFirstOrThrow({
+      where: { name, password },
+    })
 
     res
       .cookie(
         encodeURIComponent(AUTHORIZATION_COOKIE_KEY),
-        encodeURIComponent(user.id),
+        encodeURIComponent(id),
       )
-      .json(user)
+      .json({ id, name: foundName })
   } catch (error) {
-    next(error)
+    res.status(404).send('User not found')
   }
 }
 
-// // Update an item
+// Update an item
 export const updateUser = (req: Request, res: Response, next: NextFunction) => {
   req.body
   try {
