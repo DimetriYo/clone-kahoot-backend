@@ -1,6 +1,4 @@
-import { randomUUID } from 'crypto'
 import { Request, Response, NextFunction } from 'express'
-import { type User, users } from '../db/users'
 import { AUTHORIZATION_COOKIE_KEY } from '../constants'
 import { prisma } from '../prisma'
 
@@ -8,6 +6,16 @@ type RawUser = { name: string; password: string }
 
 const isRawUser = (rawUser: RawUser | any): rawUser is RawUser =>
   'name' in rawUser && 'password' in rawUser
+
+const isUniqueName = async ({ name }: { name: string }) => {
+  const user = await prisma.user.findFirst({ where: { name } })
+
+  return !user
+}
+
+const isUserIdExist = async ({ id }: { id: string }) => {
+  return await prisma.user.findFirst({ where: { id } })
+}
 
 // Create an item
 export const createUser = async (req: Request, res: Response) => {
@@ -18,9 +26,7 @@ export const createUser = async (req: Request, res: Response) => {
       throw Error('User name or user password has not been set')
     }
 
-    const user = await prisma.user.findFirst({ where: { name: rawUser.name } })
-
-    if (Boolean(user)) {
+    if (!(await isUniqueName(rawUser))) {
       throw new Error(
         'There is a user with such a name. Please make a unique name',
       )
@@ -49,29 +55,38 @@ export const getAllUsers = async (
   try {
     const users = await prisma.user.findMany()
 
-    res.json(users)
+    res.json(users.map(({ id, name }) => ({ id, name })))
   } catch (error) {
     next(error)
   }
 }
 
 // Read single item
-export const getSingleUserById = (
+export const getSingleUserById = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ) => {
   try {
-    const user = users.find((user) => user.id === req.params.id)
+    const userId = req.params.id
 
-    if (!user) {
-      res.status(404).json({ message: 'Question not found' })
-      return
+    if (!userId) {
+      throw Error('User id has not been provided')
     }
 
-    res.json(user)
+    const user = await prisma.user.findFirst({
+      where: { id: userId },
+    })
+
+    if (user === null) {
+      throw new Error('User was not found')
+    }
+
+    const { id, name } = user as { id: string; name: string }
+
+    res.json({ id, name })
   } catch (error) {
-    next(error)
+    res.status(404).send(String(error))
   }
 }
 
@@ -108,34 +123,45 @@ export const authenticateUser = async (req: Request, res: Response) => {
 }
 
 // Update an item
-export const updateUser = (req: Request, res: Response, next: NextFunction) => {
-  req.body
+export const updateUser = async (req: Request, res: Response) => {
+  const updatedData: RawUser = req.body
+  const userId = req.params.id
+
   try {
-    const userIndex = users.findIndex(
-      (question) => question.id === req.params.id,
-    )
-    if (userIndex === -1) {
-      res.status(404).json({ message: 'User not found' })
-      return
+    if (!isRawUser(updatedData)) {
+      throw Error('User name or user password has not been set')
     }
-    users[userIndex] = { ...req.body, id: req.params.id }
-    res.json(users[userIndex])
+
+    if (!(await isUniqueName(updatedData))) {
+      throw new Error(
+        'There is a user with such a name. Please make a unique name',
+      )
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: { ...updatedData },
+    })
+
+    res.json(updatedUser)
   } catch (error) {
-    next(error)
+    res.status(404).send(String(error))
   }
 }
 
 // Delete an item
-export const deleteUser = (req: Request, res: Response, next: NextFunction) => {
+export const deleteUser = async (req: Request, res: Response) => {
   try {
-    const userIndex = users.findIndex((i) => i.id === req.params.id)
-    if (userIndex === -1) {
-      res.status(404).json({ message: 'Question not found' })
-      return
+    const userId = req.params.id
+
+    if (!(await isUserIdExist({ id: userId }))) {
+      throw Error(`User with ${userId} does not exist`)
     }
-    const deletedQuestion = users.splice(userIndex, 1)[0]
-    res.json(deletedQuestion)
+
+    const deletedUser = await prisma.user.delete({ where: { id: userId } })
+
+    res.json(deletedUser)
   } catch (error) {
-    next(error)
+    res.status(404).send(String(error))
   }
 }
