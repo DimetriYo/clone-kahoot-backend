@@ -49,7 +49,7 @@ const acceptedAnswers = [
     questionId: '533ec699-b529-4514-81f5-66d93bebcc8f',
     text: 'another correct answer game 1, question 2',
   },
-  { questionId: '533ec699-b529-4514-81f5-66d93bebcc8f', text: 'no' },
+  { questionId: '533ec699-b529-4514-81f5-66d93bebcc8f', text: 'yes' },
   {
     questionId: '25899b97-93be-4062-922b-55386fdc318b',
     text: 'correct answer game 1, question 2',

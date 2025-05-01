@@ -2,6 +2,7 @@ import express from 'express'
 import gameRoutes from './routes/gameRoutes'
 import questionRoutes from './routes/questionRoutes'
 import userRoutes from './routes/userRoutes'
+import acceptedAnswerRoutes from './routes/acceptedAnswerRoutes'
 import cors from 'cors'
 import { errorHandler } from './middlewares/errorHandler'
 import ws from 'ws'
@@ -33,6 +34,7 @@ app.use(express.json())
 app.use('/api/games', gameRoutes)
 app.use('/api/questions', questionRoutes)
 app.use('/api/users', userRoutes)
+app.use('/api/accepted-answers', acceptedAnswerRoutes)
 
 // Global error handler (should be after routes)
 app.use(errorHandler)
