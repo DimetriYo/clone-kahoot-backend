@@ -7,7 +7,6 @@ import { prisma } from '../prisma'
 export const createGame = async (req: Request, res: Response) => {
   try {
     const adminId = req.cookies[AUTHORIZATION_COOKIE_KEY]
-    console.log(adminId)
 
     if (!adminId) {
       throw new Error(`There is no user with ID: ${adminId}`)
@@ -22,45 +21,40 @@ export const createGame = async (req: Request, res: Response) => {
 }
 
 // Read all game created by user
-export const getAllUserGames = (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  const userId = req.query.userId
+export const getAllUserGames = async (req: Request, res: Response) => {
+  const userId = req.cookies[AUTHORIZATION_COOKIE_KEY]
 
   if (!userId) {
     throw new Error("Couldn't authenticate user.")
   }
 
   try {
-    res.json(games.filter(({ adminId: gameAdminId }) => gameAdminId === userId))
+    const userGames = await prisma.game.findMany({ where: { adminId: userId } })
+
+    res.json(userGames)
   } catch (error) {
-    next(error)
+    res.status(404).send(String(error))
   }
 }
 
 // Read single item
-export const getSingleGameById = (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
+export const getSingleGameById = async (req: Request, res: Response) => {
+  const gameId = req.params.id
+
   try {
-    const game = games.find((game) => game.id === req.params.id)
+    const game = await prisma.game.findFirst({ where: { id: gameId } })
 
     if (!game) {
-      res.status(404).json({ message: 'Game not found' })
-      return
+      throw new Error(`Game with id ${gameId} was not found`)
     }
 
     res.json(game)
   } catch (error) {
-    next(error)
+    res.status(404).send(String(error))
   }
 }
 
-// // Update an item
+// Update an item
 // export const updateGame = (req: Request, res: Response, next: NextFunction) => {
 //   try {
 //     const { questionIds } = req.body
@@ -77,16 +71,18 @@ export const getSingleGameById = (
 // }
 
 // Delete an item
-export const deleteGame = (req: Request, res: Response, next: NextFunction) => {
+export const deleteGame = async (req: Request, res: Response) => {
   try {
-    const gameIndex = games.findIndex((i) => i.id === req.params.id)
-    if (gameIndex === -1) {
-      res.status(404).json({ message: 'Item not found' })
-      return
+    const gameId = req.params.id
+
+    const deletedGame = await prisma.game.delete({ where: { id: gameId } })
+
+    if (!deletedGame) {
+      throw new Error(`Game with id ${gameId} was not found`)
     }
-    const deletedGame = games.splice(gameIndex, 1)[0]
+
     res.json(deletedGame)
   } catch (error) {
-    next(error)
+    res.status(404).send(String(error))
   }
 }
