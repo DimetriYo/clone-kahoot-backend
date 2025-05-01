@@ -4,6 +4,7 @@ import { getRandomColor, isCorrectAnswer } from '../utils'
 import { QuestionAnswer } from '../types'
 import { prisma } from '../prisma'
 import { Question } from '@prisma/client'
+import { Request, Response } from 'express'
 
 let gameInstance: AcitveGame | null = null
 
@@ -18,6 +19,23 @@ type AcitveGame = {
   }[]
   allQuestions: Question[]
   activeQuestionId: string | null
+}
+
+export const isActiveGameExist = (req: Request, res: Response) => {
+  if (!Boolean(gameInstance)) {
+    res.status(404).send('There is no active game at the moment')
+    return
+  }
+
+  if (gameInstance?.id !== req.params.id) {
+    res
+      .status(403)
+      .send(`No game with id ${req.params.id} is currently running`)
+
+    return
+  }
+
+  res.send('Game exists')
 }
 
 const getActiveGame = async (activeGameId: string): Promise<AcitveGame> => {
