@@ -5,7 +5,7 @@ import { prisma } from '../prisma'
 type RawUser = { name: string; password: string }
 
 const isRawUser = (rawUser: RawUser | any): rawUser is RawUser =>
-  'name' in rawUser && 'password' in rawUser
+  rawUser?.name && rawUser?.password
 
 const isUniqueName = async ({ name }: { name: string }) => {
   const user = await prisma.user.findFirst({ where: { name } })
@@ -65,10 +65,6 @@ export const createUser = async (req: Request, res: Response) => {
 export const getSingleUserById = async (req: Request, res: Response) => {
   try {
     const userId = req.params.id
-
-    if (!userId) {
-      throw Error('User id has not been provided')
-    }
 
     const user = await prisma.user.findFirst({
       where: { id: userId },
