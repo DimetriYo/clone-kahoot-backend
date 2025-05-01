@@ -1,5 +1,4 @@
-import { Request, Response, NextFunction } from 'express'
-import { games } from '../db/games'
+import { Request, Response } from 'express'
 import { AUTHORIZATION_COOKIE_KEY } from '../constants'
 import { prisma } from '../prisma'
 

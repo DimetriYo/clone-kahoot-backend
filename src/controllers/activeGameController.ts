@@ -1,10 +1,9 @@
 import { IncomingMessage } from 'http'
 import ws, { WebSocket } from 'ws'
-import { games } from '../db/games'
-import { questions } from '../db/questions'
-import { users } from '../db/users'
 import { getRandomColor, isCorrectAnswer } from '../utils'
 import { QuestionAnswer } from '../types'
+import { prisma } from '../prisma'
+import { Question } from '@prisma/client'
 
 let gameInstance: AcitveGame | null = null
 
@@ -17,24 +16,29 @@ type AcitveGame = {
     answers: { questionId: string; text: string; isCorrect: boolean }[]
     clientId: string
   }[]
-  allQuestions: {
-    id: string
-    img?: string | undefined
-    text: string
-  }[]
-  activeQuestionId: string
+  allQuestions: Question[]
+  activeQuestionId: string | null
 }
 
-const getActiveGame = (activeGameId: string): AcitveGame => {
-  const game = games.find(({ id }) => id === activeGameId)!
-  const allQuestions = questions
-    .filter(({ gameId }) => gameId === activeGameId)
-    .map(({ acceptedAnswers, gameId, ...question }) => ({
-      ...question,
-    }))
-  const activeQuestionId = allQuestions[0].id
+const getActiveGame = async (activeGameId: string): Promise<AcitveGame> => {
+  const game = await prisma.game.findFirst({ where: { id: activeGameId } })
 
-  return { ...game, players: [], allQuestions, activeQuestionId }
+  if (!game) {
+    throw new Error(`Game with id ${activeGameId} was not found`)
+  }
+
+  const gameQuestions = await prisma.question.findMany({
+    where: { gameId: activeGameId },
+  })
+
+  const activeQuestionId = gameQuestions.length ? gameQuestions[0].id : null
+
+  return {
+    id: game.id,
+    players: [],
+    allQuestions: gameQuestions,
+    activeQuestionId,
+  }
 }
 
 const broadcastMessage = (
@@ -72,7 +76,13 @@ const handleNewPlayerConnected = async (
     return
   }
 
-  const playerData = users.find(({ id }) => id === payload.userId)!
+  const playerData = await prisma.user.findFirst({
+    where: { id: payload.userId },
+  })
+
+  if (!playerData) {
+    throw new Error(`User with id ${payload.userId} has not been found`)
+  }
 
   const player: (typeof gameInstance.players)[number] = {
     id: playerData.id,
@@ -119,13 +129,15 @@ export const activeGameController = (
   wss: ws.Server<typeof WebSocket, typeof IncomingMessage>,
   clientId: string,
 ) => {
-  ws.on('message', (message: string) => {
+  ws.on('message', async (message: string) => {
     const parsedMeesage: { type: string; payload: any } = JSON.parse(message)
 
     switch (parsedMeesage.type) {
       case 'START_GAME':
         const { gameId } = parsedMeesage.payload
-        gameInstance = getActiveGame(gameId)
+
+        gameInstance = await getActiveGame(gameId)
+
         ws.send(JSON.stringify({ type: 'GAME_DATA', payload: gameInstance }))
 
         break
@@ -142,7 +154,7 @@ export const activeGameController = (
           break
         }
 
-        handleNewPlayerConnected(wss, parsedMeesage.payload, clientId)
+        await handleNewPlayerConnected(wss, parsedMeesage.payload, clientId)
 
         break
 

@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from 'express'
+import { Request, Response } from 'express'
 import { AUTHORIZATION_COOKIE_KEY } from '../constants'
 import { prisma } from '../prisma'
 
@@ -47,26 +47,22 @@ export const createUser = async (req: Request, res: Response) => {
 }
 
 // Read all items
-export const getAllUsers = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  try {
-    const users = await prisma.user.findMany()
+// export const getAllUsers = async (
+//   req: Request,
+//   res: Response,
+//   next: NextFunction,
+// ) => {
+//   try {
+//     const users = await prisma.user.findMany()
 
-    res.json(users.map(({ id, name }) => ({ id, name })))
-  } catch (error) {
-    next(error)
-  }
-}
+//     res.json(users.map(({ id, name }) => ({ id, name })))
+//   } catch (error) {
+//     next(error)
+//   }
+// }
 
 // Read single item
-export const getSingleUserById = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
+export const getSingleUserById = async (req: Request, res: Response) => {
   try {
     const userId = req.params.id
 
