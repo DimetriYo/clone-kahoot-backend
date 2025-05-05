@@ -1,38 +1,35 @@
-# Stage 1: Build stage
-FROM node:22-alpine AS build
+FROM node:22-alpine AS base
 
+# Установка зависимостей
+FROM base AS deps
 WORKDIR /app
-
-# Копируем package.json и yarn.lock для установки зависимостей
 COPY package.json yarn.lock ./
-
-# Устанавливаем зависимости строго по lock-файлу (аналог npm ci)
 RUN yarn install --frozen-lockfile
 
-# Копируем исходники
+# Сборка приложения
+FROM base AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+COPY prisma ./prisma
 
-ENV NODE_ENV=production
+# Генерация Prisma Client
+RUN yarn prisma generate --schema=./prisma/schema.prisma
 
-# Собираем TypeScript код
+# Компиляция TypeScript
 RUN yarn build
 
-# Stage 2: Production stage
-FROM node:22-alpine
-
+# Финальный production-образ
+FROM base AS runner
 WORKDIR /app
+ENV NODE_ENV=production
 
-# Копируем package.json и yarn.lock для установки production-зависимостей
-COPY package.json yarn.lock ./
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+COPY --from=builder /app/dist ./dist
 
-# Устанавливаем только production-зависимости
-RUN yarn install --frozen-lockfile --production
-
-# Копируем собранные файлы из build-стейджа
-COPY --from=build /app/dist ./dist
-
-# Открываем порт, на котором работает приложение (например, 3000)
 EXPOSE 3000
 
-# Запускаем приложение
-CMD ["yarn", "start"]
+CMD ["node", "dist/src/server.js"]

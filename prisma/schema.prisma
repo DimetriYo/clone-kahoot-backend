@@ -10,7 +10,7 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = env("DEV_DATABASE_URL")
+  url      = "file:./dev.db" //env("DEV_DATABASE_URL") // TODO: make automatic db-source choice
 }
 
 model Game {
