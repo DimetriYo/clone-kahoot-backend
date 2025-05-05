@@ -1,6 +1,4 @@
-import dotenv from 'dotenv'
-
-dotenv.config()
+import { config } from 'dotenv'
 
 interface Config {
   port: number
@@ -8,11 +6,9 @@ interface Config {
   host: string
 }
 
-const config: Config = {
-  port: Number(process.env.PORT) || 3000,
-  nodeEnv:
-    (process.env.NODE_ENV as Config['nodeEnv'] | undefined) || 'development',
-  host: process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost',
-}
+const envFile =
+  process.env.NODE_ENV === 'production' ? '.env.production' : '.env.development'
 
-export default config
+const configInstance = config({ path: envFile }) as Config
+
+export default configInstance
