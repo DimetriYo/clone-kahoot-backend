@@ -5,17 +5,21 @@
   "license": "MIT",
   "scripts": {
     "build": "tsc",
-    "start": "node dist/server.js",
-    "dev": "dotenv -e .env.development -- nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/server.ts",
+    "start": "dotenvx run -f .env.production -- node dist/src/server.js",
+    "dev": "dotenvx run -f .env.development -- nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/server.ts",
     "lint": "eslint 'src/**/*.ts'",
-    "prisma-seed": "tsx prisma/seed.ts"
+    "prisma-seed-dev": "dotenvx run -f .env.development -- tsx prisma/seed.ts",
+    "prisma-migrate-dev": "dotenvx run -f .env.development -- prisma migrate dev --name init",
+    "prisma-studio-dev": "dotenvx run -f .env.development -- prisma studio",
+    "prisma-migrate-prod": "dotenvx run -f .env.production -- prisma migrate deploy",
+    "prisma-studio-prod": "dotenvx run -f .env.production -- prisma studio"
   },
   "dependencies": {
+    "@dotenvx/dotenvx": "^1.43.0",
     "@prisma/client": "^6.6.0",
     "@types/ws": "^8.18.1",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
-    "dotenv": "^16.4.7",
     "express": "^5.1.0",
     "sqlite3": "^5.1.7",
     "ws": "^8.18.1"

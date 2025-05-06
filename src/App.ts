@@ -10,7 +10,6 @@ import ws from 'ws'
 import { createServer } from 'http'
 import { activeGameController } from './controllers/activeGameController'
 import cookieParser from 'cookie-parser'
-import config from './config/config'
 
 const app = express()
 const server = createServer(app)
@@ -22,7 +21,7 @@ wss.on('connection', (ws) => {
 })
 
 const allowedOrigins =
-  config.nodeEnv === 'development'
+  process.env.nodeEnv === 'development'
     ? 'http://localhost:5173'
     : ['http://localhost:4173', 'https://dimetriyo.github.io']
 
