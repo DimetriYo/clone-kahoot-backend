@@ -42,7 +42,7 @@ export const createUser = async (req: Request, res: Response) => {
       .status(201)
       .json({ id, name })
   } catch (error) {
-    res.send(String(error))
+    res.status(404).send(String(error))
   }
 }
 

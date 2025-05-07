@@ -3,12 +3,12 @@ import {
   createAcceptedAnswers,
   deleteAcceptedAnswersByQuestionId,
   getAcceptedAnswersByQuestionId,
-  updateAcceptedAnswers,
+  updateAcceptedAnswersByQuestionId,
 } from '../controllers/acceptedAnswersController'
 
 const router = Router()
 
-router.put('/', updateAcceptedAnswers)
+router.put('/', updateAcceptedAnswersByQuestionId)
 router.get('/', getAcceptedAnswersByQuestionId)
 router.post('/', createAcceptedAnswers)
 router.delete('/', deleteAcceptedAnswersByQuestionId)

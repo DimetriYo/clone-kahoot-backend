@@ -20,12 +20,7 @@ wss.on('connection', (ws) => {
   activeGameController(ws, wss, clientId)
 })
 
-const allowedOrigins =
-  process.env.nodeEnv === 'development'
-    ? 'http://localhost:5173'
-    : ['http://localhost:4173', 'https://dimetriyo.github.io']
-
-app.use(cors({ origin: allowedOrigins, credentials: true }))
+app.use(cors({ origin: process.env.ALLOWED_ORIGIN, credentials: true }))
 app.use(cookieParser('random-key'))
 
 app.use(express.json())

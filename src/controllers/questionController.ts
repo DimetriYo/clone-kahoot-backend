@@ -24,6 +24,7 @@ export const createQuestion = async (req: Request, res: Response) => {
     if (!(await isGameExist(rawQuestion.gameId))) {
       throw new Error(`Game with id ${rawQuestion.gameId} was not found`)
     }
+    console.log(rawQuestion)
 
     const newQuestion = await prisma.question.create({ data: rawQuestion })
 

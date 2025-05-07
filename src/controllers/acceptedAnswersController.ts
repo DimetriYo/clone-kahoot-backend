@@ -84,38 +84,32 @@ export const getAcceptedAnswersByQuestionId = async (
 // }
 
 // // Update an item
-export const updateAcceptedAnswers = async (req: Request, res: Response) => {
+export const updateAcceptedAnswersByQuestionId = async (
+  req: Request,
+  res: Response,
+) => {
   try {
+    const questionId = req.query.questionId as string | undefined
     const newAnswers: RawAcceptedAnswer | AcceptedAnswer = req.body
 
     if (!isRawAcceptedAnswers(newAnswers)) {
       throw new Error(`Bad content of updated accepted answers`)
     }
 
-    if (
-      (
-        await Promise.all(
-          newAnswers.map(({ questionId }) => isQuestionExist(questionId)),
-        )
-      ).some((value) => value === false)
-    ) {
+    if (!questionId) {
+      throw new Error('Question id has not been provided')
+    }
+
+    if (!(await isQuestionExist(questionId))) {
       throw new Error(
-        `Accepted answer for one of question answers had an id of the question that was not found`,
+        `Quesition with ID ${questionId} was not found while updating accepted answers`,
       )
     }
 
-    const updatedAcceptedAnswers = await Promise.all(
-      newAnswers.map((newAnswer) => {
-        if ('id' in newAnswer) {
-          return prisma.acceptedAnswer.update({
-            data: newAnswer,
-            where: { id: newAnswer.id },
-          })
-        } else {
-          return prisma.acceptedAnswer.create({ data: newAnswer })
-        }
-      }),
-    )
+    await prisma.acceptedAnswer.deleteMany({ where: { questionId } })
+
+    const updatedAcceptedAnswers =
+      await prisma.acceptedAnswer.createManyAndReturn({ data: newAnswers })
 
     res.json(updatedAcceptedAnswers)
   } catch (error) {
