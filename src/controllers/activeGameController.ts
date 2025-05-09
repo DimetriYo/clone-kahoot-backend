@@ -132,7 +132,17 @@ const handleShowAnswers = (
   wss: ws.Server<typeof WebSocket, typeof IncomingMessage>,
   message: { type: string; payload: { questionId: string } },
 ) => {
-  broadcastMessage(wss, message)
+  broadcastMessage(wss, {
+    type: message.type,
+    payload: gameInstance!.players.map(({ answers, id }) => {
+      const playerAnswer =
+        answers.find(
+          ({ questionId }) => questionId === message.payload.questionId,
+        )?.text || null
+
+      return { playerId: id, playerAnswer }
+    }),
+  })
 }
 
 const handleShowWinners = (

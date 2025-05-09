@@ -5,3 +5,5 @@ dist
 generated
 prisma/dev.db
 prisma/dev.db-journal
+test_suite_analysis
+managed_context
