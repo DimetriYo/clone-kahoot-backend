@@ -1,4 +1,4 @@
-import { questions } from './db/questions'
+import { prisma } from './prisma'
 import { QuestionAnswer } from './types'
 
 const COLORS = ['red', 'orange', 'blue', 'green', 'purple', 'pink']
@@ -11,12 +11,15 @@ export const getRandomColor = () => {
   return getRandomElement(COLORS)
 }
 
-export const isCorrectAnswer = ({ answer, questionId }: QuestionAnswer) => {
-  const correctAnswers = questions.find(
-    ({ id }) => id === questionId,
-  )?.acceptedAnswers
+export const isCorrectAnswer = async ({
+  answer,
+  questionId,
+}: QuestionAnswer) => {
+  const correctAnswers = await prisma.acceptedAnswer.findMany({
+    where: { questionId },
+  })
 
   if (!correctAnswers) return false
 
-  return correctAnswers.includes(answer)
+  return correctAnswers.some(({ text }) => text === answer)
 }

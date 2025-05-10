@@ -66,7 +66,7 @@ const broadcastMessage = (
   wss.clients.forEach((client) => client.send(JSON.stringify(message)))
 }
 
-const handleAnswerQuestion = (
+const handleAnswerQuestion = async (
   wss: ws.Server<typeof WebSocket, typeof IncomingMessage>,
   payload: QuestionAnswer,
 ) => {
@@ -79,7 +79,7 @@ const handleAnswerQuestion = (
   player.answers.push({
     questionId: payload.questionId,
     text: payload.answer,
-    isCorrect: isCorrectAnswer(payload),
+    isCorrect: await isCorrectAnswer(payload),
   })
 
   broadcastMessage(wss, { type: 'GAME_DATA', payload: gameInstance })
@@ -134,13 +134,23 @@ const handleShowAnswers = (
 ) => {
   broadcastMessage(wss, {
     type: message.type,
-    payload: gameInstance!.players.map(({ answers, id }) => {
+    payload: gameInstance!.players.map(({ answers, id, name }) => {
       const playerAnswer =
         answers.find(
           ({ questionId }) => questionId === message.payload.questionId,
-        )?.text || null
+        ) || null
 
-      return { playerId: id, playerAnswer }
+      return {
+        playerId: id,
+        playerName: name,
+        playerAnswer: playerAnswer
+          ? playerAnswer
+          : {
+              questionId: message.payload.questionId,
+              text: null,
+              isCorrect: false,
+            },
+      }
     }),
   })
 }
