@@ -23,11 +23,11 @@ export const createGame = async (req: Request, res: Response) => {
 export const getAllUserGames = async (req: Request, res: Response) => {
   const userId = req.cookies[AUTHORIZATION_COOKIE_KEY]
 
-  if (!userId) {
-    throw new Error("Couldn't authenticate user.")
-  }
-
   try {
+    if (!userId) {
+      throw new Error("Couldn't authenticate user.")
+    }
+
     const userGames = await prisma.game.findMany({ where: { adminId: userId } })
 
     res.json(userGames)
