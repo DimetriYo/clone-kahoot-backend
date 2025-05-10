@@ -25,7 +25,7 @@ export const getAllUserGames = async (req: Request, res: Response) => {
 
   try {
     if (!userId) {
-      throw new Error("Couldn't authenticate user.")
+      throw new Error('No user id was provided')
     }
 
     const userGames = await prisma.game.findMany({ where: { adminId: userId } })
