@@ -76,7 +76,12 @@ export const getSingleUserById = async (req: Request, res: Response) => {
 
     const { id, name } = user as { id: string; name: string }
 
-    res.json({ id, name })
+    res
+      .cookie(
+        encodeURIComponent(AUTHORIZATION_COOKIE_KEY),
+        encodeURIComponent(id),
+      )
+      .json({ id, name })
   } catch (error) {
     res.status(404).send(String(error))
   }
