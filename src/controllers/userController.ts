@@ -38,6 +38,7 @@ export const createUser = async (req: Request, res: Response) => {
       .cookie(
         encodeURIComponent(AUTHORIZATION_COOKIE_KEY),
         encodeURIComponent(id),
+        { secure: true, sameSite: 'none' },
       )
       .status(201)
       .json({ id, name })
@@ -80,6 +81,7 @@ export const getSingleUserById = async (req: Request, res: Response) => {
       .cookie(
         encodeURIComponent(AUTHORIZATION_COOKIE_KEY),
         encodeURIComponent(id),
+        { secure: true, sameSite: 'none' },
       )
       .json({ id, name })
   } catch (error) {
@@ -112,6 +114,7 @@ export const authenticateUser = async (req: Request, res: Response) => {
       .cookie(
         encodeURIComponent(AUTHORIZATION_COOKIE_KEY),
         encodeURIComponent(id),
+        { secure: true, sameSite: 'none' },
       )
       .json({ id, name: foundName })
   } catch (error) {
