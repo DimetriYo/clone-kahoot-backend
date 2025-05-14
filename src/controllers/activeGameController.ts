@@ -172,6 +172,17 @@ export const activeGameController = (
 
     switch (parsedMeesage.type) {
       case 'START_GAME':
+        if (gameInstance) {
+          ws.send(
+            JSON.stringify({
+              type: 'FAULT',
+              payload: 'The game is already running',
+            }),
+          )
+
+          return
+        }
+
         const { gameId } = parsedMeesage.payload
 
         gameInstance = await getActiveGame(gameId)

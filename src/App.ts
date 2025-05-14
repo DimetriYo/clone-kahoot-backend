@@ -13,6 +13,7 @@ import cookieParser from 'cookie-parser'
 
 const app = express()
 const server = createServer(app)
+
 const wss = new ws.Server({ server })
 
 wss.on('connection', (ws) => {
