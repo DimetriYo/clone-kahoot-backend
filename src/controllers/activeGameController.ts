@@ -183,6 +183,17 @@ export const activeGameController = (
           return
         }
 
+        ws.on('close', () => {
+          console.log('Admin disconnected')
+
+          broadcastMessage(wss, {
+            type: 'END_GAME',
+            payload: null,
+          })
+
+          gameInstance = null
+        })
+
         const { gameId } = parsedMeesage.payload
 
         gameInstance = await getActiveGame(gameId)
@@ -239,6 +250,8 @@ export const activeGameController = (
         if (gameInstance) {
           gameInstance = null
         }
+
+        broadcastMessage(wss, { type: 'END_GAME', payload: null })
 
         break
     }
